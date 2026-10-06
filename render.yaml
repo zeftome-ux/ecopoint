@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ecopoint
+    runtime: python
+    plan: free
+    buildCommand: "echo sem dependencias"
+    startCommand: "python server.py --quiet"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: ECOPOINT_ADMIN_PASSWORD
+        sync: false
