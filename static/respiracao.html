@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mecânica da Respiração</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Simulação interativa da respiração humana e da Lei de Boyle: diafragma, pulmões, pressão e volume conectados ao mesmo modelo matemático.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=Inter:wght@400;500;600;700&family=STIX+Two+Text:ital,wght@1,500&display=swap">
+<link rel="stylesheet" href="respiracao/style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ============ ÁREA SUPERIOR — contexto ============ -->
+  <header class="top">
+    <div class="brand">
+      <p class="eyebrow">Anatomia · Física · Matemática</p>
+      <h1>Mecânica da Respiração</h1>
+    </div>
+    <div class="status" aria-live="polite">
+      <span class="phase-pill" id="phasePill" data-phase="insp">
+        <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path id="phaseIco" d="M10 3v12m0 0-4.5-4.5M10 15l4.5-4.5"/></svg>
+        <span id="phaseName">Inspiração</span>
+        <span class="paused-tag" id="pausedTag" hidden>pausado</span>
+      </span>
+      <span class="step-info">
+        <span class="step-dots" id="stepDots"><i></i><i></i><i></i></span>
+        <span id="stepInfo">Etapa 1 de 3</span>
+      </span>
+    </div>
+    <div class="modes" role="tablist" aria-label="Modo">
+      <button type="button" role="tab" id="tabSim" aria-selected="true">Simulação</button>
+      <button type="button" role="tab" id="tabQuiz" aria-selected="false">Experimente você mesmo</button>
+    </div>
+  </header>
+
+  <!-- ============ ÁREA CENTRAL — simulação anatômica ============ -->
+  <main class="middle">
+    <section class="stage-card" aria-label="Simulação anatômica">
+      <div class="stage">
+        <svg id="anatomy" viewBox="0 0 640 560" role="img" aria-label="Tórax em vista frontal com traqueia, pulmões, costelas e diafragma"></svg>
+        <div class="chip chip-atm" style="left:56.5%;top:1.2%">
+          <span class="chip-k">Ar externo</span>
+          <span class="chip-v"><b>760</b> mmHg</span>
+        </div>
+        <div class="chip chip-lung" id="chipLung" style="left:73%;top:44%">
+          <span class="chip-k">Dentro dos pulmões</span>
+          <span class="chip-v"><b id="chipP">760</b> mmHg</span>
+          <span class="chip-cmp" id="chipCmp">igual à pressão externa</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="transport">
+          <button type="button" class="btn btn-primary" id="btnPlay" aria-label="Reproduzir">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path id="playIco" d="M6 4.5v11l9-5.5z"/></svg>
+            <span id="playLabel">Reproduzir</span>
+          </button>
+          <button type="button" class="btn" id="btnReset" title="Reiniciar (R)">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 1 0 1.8-4.3M4 3.5v3.2h3.2"/></svg>
+            <span>Reiniciar</span>
+          </button>
+          <button type="button" class="btn" id="btnSwitch" title="Alternar fase">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3v13m0 0-3-3m3 3 3-3M14 17V4m0 0-3 3m3-3 3 3"/></svg>
+            <span id="switchLabel">Ir para expiração</span>
+          </button>
+          <div class="seg" role="radiogroup" aria-label="Velocidade" id="speedSeg">
+            <button type="button" role="radio" aria-checked="false" data-speed="0.5">0,5×</button>
+            <button type="button" role="radio" aria-checked="true" data-speed="1">1×</button>
+            <button type="button" role="radio" aria-checked="false" data-speed="1.5">1,5×</button>
+            <button type="button" role="radio" aria-checked="false" data-speed="2">2×</button>
+          </div>
+          <label class="switch" for="loopToggle">
+            <input type="checkbox" id="loopToggle" checked>
+            <span class="track" aria-hidden="true"></span>
+            <span>Ciclo contínuo</span>
+          </label>
+        </div>
+
+        <div class="manual">
+          <label for="dSlider" class="manual-title">Mova o diafragma</label>
+          <div class="slider-row">
+            <span class="end">Relaxado<small>sobe</small></span>
+            <input type="range" id="dSlider" min="0" max="1000" value="0" step="1" aria-describedby="sliderHint">
+            <span class="end end-r">Contraído<small>desce</small></span>
+          </div>
+          <p class="hint" id="sliderHint">Arraste para controlar a respiração com a mão. A animação pausa enquanto você controla.</p>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <!-- explicação contextual -->
+      <div class="explain" id="explainPanel">
+        <p class="eyebrow" id="explainEyebrow">O que está acontecendo</p>
+        <ol class="steps" id="steps">
+          <li data-i="0"><span class="n">1</span><div><b></b><p></p></div></li>
+          <li data-i="1"><span class="n">2</span><div><b></b><p></p></div></li>
+          <li data-i="2"><span class="n">3</span><div><b></b><p></p></div></li>
+        </ol>
+        <div class="flow-state" id="flowState">
+          <span class="flow-dot"></span><span id="flowText">Ar parado</span>
+        </div>
+      </div>
+
+      <!-- modo Experimente você mesmo -->
+      <div class="quiz" id="quizPanel" hidden>
+        <p class="eyebrow" id="quizCount">Pergunta 1 de 5</p>
+        <h2 class="quiz-q" id="quizQ"></h2>
+        <p class="quiz-hint" id="quizHint"></p>
+        <div class="quiz-opts" id="quizOpts"></div>
+        <div class="quiz-fb" id="quizFb" hidden>
+          <p class="fb-title" id="fbTitle"></p>
+          <p class="fb-text" id="fbText"></p>
+        </div>
+        <div class="quiz-actions">
+          <button type="button" class="btn" id="quizReplay" hidden>Ver de novo</button>
+          <button type="button" class="btn btn-primary" id="quizNext" hidden>Próxima pergunta</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ============ ÁREA INFERIOR — física da respiração ============ -->
+  <section class="physics" aria-label="Lei de Boyle">
+    <div class="formula-card">
+      <div class="card-head">
+        <p class="eyebrow">Lei de Boyle · temperatura constante</p>
+        <p class="badge">Modelo didático</p>
+      </div>
+      <div class="formula" aria-live="off">
+        <div class="term t-p">
+          <span class="sym">P<sub>1</sub></span>
+          <span class="val">760</span><span class="unit">mmHg</span>
+        </div>
+        <span class="op">×</span>
+        <div class="term t-v">
+          <span class="sym">V<sub>1</sub></span>
+          <span class="val"><span id="fV1">4.000</span></span><span class="unit">mL</span>
+        </div>
+        <span class="op eq">=</span>
+        <div class="term t-p live">
+          <span class="sym">P<sub>2</sub></span>
+          <span class="val"><span id="fP2">760</span><i class="trend" id="trendP"></i></span><span class="unit">mmHg</span>
+        </div>
+        <span class="op">×</span>
+        <div class="term t-v live">
+          <span class="sym">V<sub>2</sub></span>
+          <span class="val"><span id="fV2">4.000</span><i class="trend" id="trendV"></i></span><span class="unit">mL</span>
+        </div>
+      </div>
+      <div class="products">
+        <span><small>P₁ · V₁</small><b id="fK1">3.040.000</b></span>
+        <span class="k" id="fKnote">= constante =</span>
+        <span><small>P₂ · V₂</small><b id="fK">3.040.000</b></span>
+      </div>
+      <p class="fineprint">Estado 1: o ar a 760 mmHg ocupando V₁. Estado 2: o mesmo ar no volume atual V₂. Produtos em mmHg·mL, calculados com a pressão exata; na tela ela aparece arredondada.</p>
+    </div>
+
+    <div class="compare-card">
+      <p class="eyebrow">Inicial × atual</p>
+      <div class="meter m-v">
+        <div class="m-head"><span class="m-name">Volume</span><span class="m-delta" id="dV">0 mL</span></div>
+        <div class="m-vals"><span id="mV1">4.000</span><svg class="arrow-r" viewBox="0 0 16 8" aria-hidden="true"><path d="M0 4h14m-3-3 3 3-3 3"/></svg><b id="mV">4.000</b><span class="u">mL</span></div>
+        <div class="bar"><span id="barV"></span></div>
+        <div class="bar-scale"><span>4.000</span><span>4.048</span></div>
+      </div>
+      <div class="meter m-p">
+        <div class="m-head"><span class="m-name">Pressão interna</span><span class="m-delta" id="dP">igual à de fora</span></div>
+        <div class="m-vals"><span id="mP1">760</span><svg class="arrow-r" viewBox="0 0 16 8" aria-hidden="true"><path d="M0 4h14m-3-3 3 3-3 3"/></svg><b id="mP">760</b><span class="u">mmHg</span></div>
+        <div class="bar bar-div"><span id="barP"></span><i class="mid" aria-hidden="true"></i></div>
+        <div class="bar-scale"><span>751</span><span>760 · ar externo</span><span>769</span></div>
+      </div>
+      <p class="inverse" id="inverseNote">Volume e pressão andam em sentidos opostos.</p>
+    </div>
+
+    <div class="chart-card">
+      <p class="eyebrow">Pressão × volume</p>
+      <svg id="pvChart" viewBox="0 0 320 196" role="img" aria-label="Gráfico da curva P vezes V igual a constante, com o estado atual destacado"></svg>
+      <p class="chart-cap">Em cada curva, P·V é constante. O ponto desliza pela curva quando o diafragma se move e pula de curva quando o ar entra ou sai.</p>
+    </div>
+  </section>
+
+  <footer class="note">
+    <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 6.2v.1"/></svg>
+    <p><b>Modelo didático simplificado, não são medições clínicas.</b> A variação de pressão está ampliada (na respiração real fica perto de 1 a 3 mmHg), assim como o movimento da anatomia. Enquanto o diafragma se move, a pressão é calculada para a mesma quantidade de ar (Lei de Boyle). Quando ele para, o ar que entrou ou saiu devolve a pressão interna a 760 mmHg.</p>
+  </footer>
+</div>
+
+<script src="respiracao/model.js"></script>
+<script src="respiracao/anatomy.js"></script>
+<script src="respiracao/quiz.js"></script>
+<script src="respiracao/app.js"></script>
+</body>
+</html>

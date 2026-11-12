@@ -26,3 +26,8 @@ Abra http://localhost:8000
 - `server.py`: servidor e API (regras de pontos, desafios, conquistas e antifraude)
 - `db.py`: banco SQLite e dados fictícios
 - `static/`: interface (HTML, CSS e JS)
+- `static/respiracao.html`: simulação interativa "Mecânica da Respiração" (Lei de Boyle). Com o servidor rodando, abra http://localhost:8000/respiracao.html. Também funciona abrindo o arquivo direto no navegador.
+  - `static/respiracao/model.js`: modelo matemático (P₁·V₁ = P₂·V₂) e motor da animação
+  - `static/respiracao/anatomy.js`: anatomia em SVG gerada a partir do mesmo modelo
+  - `static/respiracao/quiz.js`: modo "Experimente você mesmo"
+  - `static/respiracao/app.js`: interface, controles e sincronização
